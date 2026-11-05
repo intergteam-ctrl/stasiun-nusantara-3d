@@ -1,0 +1,7 @@
+node_modules/
+.netlify/
+game/netlify-site/
+game/mobile/www/
+game/mobile/build/
+game/mobile/keystore/
+*.idsig

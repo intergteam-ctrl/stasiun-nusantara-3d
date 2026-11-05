@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Statistik Stasiun Nusantara</title>
+<link rel="stylesheet" href="fonts.css">
+<link rel="icon" type="image/png" href="/icons/icon-192.png">
+<style>
+/* Layout: ringkasan angka di atas, grafik sesi per hari, tabel per level, lalu masukan & papan peringkat. Tampilan terang yang sama dengan game. */
+:root{
+  --bg:#eef6fd; --panel:#fff; --sunk:#e9f1f9; --line:#d5e2f0; --line-2:#b9cde3;
+  --text:#1f3557; --navy:#1d3f73; --muted:#6b7f9e; --bar:#3a8ef6; --bar-2:#9cc7fb; --accent:#ff8a2a; --accent-2:#e86f0c;
+  --font-display:"Fredoka",system-ui,sans-serif; --font-body:"Nunito",system-ui,sans-serif; --font-mono:"JetBrains Mono",ui-monospace,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 var(--font-body)}
+main{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:24px 48px;display:flex;flex-direction:column;gap:16px}
+h1{font:700 30px/1.1 var(--font-display);color:var(--navy);margin:0}
+h2{font:600 19px/1.2 var(--font-display);color:var(--navy);margin:0 0 10px}
+.eyebrow{font:600 12px var(--font-display);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-2)}
+.muted{color:var(--muted)}
+.panel{background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:16px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:800 14px var(--font-body);border:2px solid var(--line-2);background:#fff;color:var(--navy);border-radius:12px;padding:8px 14px;cursor:pointer;box-shadow:0 3px 0 var(--line-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent-2);color:#fff;box-shadow:0 3px 0 var(--accent-2)}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--bar);outline-offset:2px}
+input,select{font:700 14px var(--font-body);color:var(--text);background:#f2f7fc;border:2px solid var(--line);border-radius:10px;padding:8px 10px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.tile .v{font:700 34px/1 var(--font-display);color:var(--navy);font-variant-numeric:tabular-nums}
+.tile .l{font-size:12.5px;color:var(--muted);margin-top:6px}
+.chart{position:relative;height:200px;display:flex;align-items:flex-end;gap:6px;padding:8px 0 0;border-bottom:1px solid var(--line-2)}
+.chart .gl{position:absolute;left:0;right:0;border-top:1px dashed var(--sunk);font:11px var(--font-mono);color:var(--muted)}
+.chart .gl span{position:absolute;right:0;top:-15px;background:var(--panel);padding-left:4px}
+.col{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;cursor:default}
+.col i{display:block;width:min(36px,70%);background:var(--bar);border-radius:4px 4px 0 0;min-height:2px}
+.col:hover i,.col:focus i{background:var(--navy)}
+.col .tip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;font-size:12px;padding:6px 9px;border-radius:8px;white-space:nowrap;z-index:2}
+.col:hover .tip,.col:focus .tip{display:block}
+.xl{display:flex;gap:6px;margin-top:6px}.xl span{flex:1;min-width:0;text-align:center;font:11px var(--font-mono);color:var(--muted);overflow:hidden}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:13px}
+th,td{padding:8px 10px;border-bottom:2px solid var(--sunk);text-align:left;vertical-align:middle}
+th{font:600 12px var(--font-display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.n{font-family:var(--font-mono);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.meter{display:inline-block;width:70px;height:8px;background:var(--sunk);border-radius:4px;overflow:hidden;vertical-align:middle;margin-left:8px}
+.meter i{display:block;height:100%;background:var(--bar);border-radius:4px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.fb{border-bottom:2px solid var(--sunk);padding:10px 0;display:flex;flex-direction:column;gap:3px}
+.fb:last-child{border-bottom:0}
+.stars{color:#f5b41a;letter-spacing:2px}
+.err{color:#d22f3a;font-weight:800}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <div><div class="eyebrow">Stasiun Nusantara 3D</div><h1>Statistik permainan</h1></div>
+  <section class="panel" id="login">
+    <h2>Masuk admin</h2>
+    <p class="muted" style="margin:0 0 10px">Masukkan kunci admin (variabel lingkungan <code>ADMIN_KEY</code> di Netlify).</p>
+    <form class="row" id="f"><label for="k" class="muted">Kunci</label><input id="k" type="password" autocomplete="current-password" required>
+      <label for="d" class="muted">Rentang</label><select id="d"><option value="7">7 hari</option><option value="14">14 hari</option><option value="30">30 hari</option></select>
+      <button class="btn primary" type="submit">Tampilkan</button><span id="msg" class="err" role="alert"></span></form>
+  </section>
+  <div id="out" hidden></div>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const JOB = ['', 'OB / Cleaning Service', 'Ticketing & Announcer', 'Kondektur & PTP', 'PPKA', 'Kepala Stasiun'];
+const fmtDur = s => s == null ? '–' : s >= 60 ? Math.floor(s / 60) + ' mnt ' + (s % 60) + ' dtk' : s + ' dtk';
+const pct = (a, b) => b ? Math.round(a / b * 100) : null;
+let key = '';
+try { key = sessionStorage.getItem('sn-admin') || ''; } catch (e) { }
+if (key) { $('#k').value = key; load(); }
+$('#f').onsubmit = e => { e.preventDefault(); key = $('#k').value.trim(); try { sessionStorage.setItem('sn-admin', key); } catch (e) { } load(); };
+async function load() {
+  $('#msg').textContent = 'Memuat…';
+  try {
+    const r = await fetch('/api/stats?days=' + $('#d').value, { headers: { 'x-admin-key': key } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || 'HTTP ' + r.status);
+    $('#msg').textContent = ''; render(j);
+  } catch (e) { $('#msg').textContent = e.message; $('#out').hidden = true; }
+}
+function render(s) {
+  const plays = s.perDay.reduce((a, d) => a + d.plays, 0), daily = s.perDay.reduce((a, d) => a + d.dailyPlays, 0);
+  const ends = s.levels.reduce((a, l) => a + l.ends, 0), passes = s.levels.reduce((a, l) => a + l.pass, 0);
+  const max = Math.max(1, ...s.perDay.map(d => d.sessions)), step = Math.max(1, Math.ceil(max / 4));
+  const top = step * Math.ceil(max / step);
+  const grid = Array.from({ length: Math.floor(top / step) + 1 }, (_, i) => i * step).map(v => `<div class="gl" style="bottom:${v / top * 100}%"><span>${v}</span></div>`).join('');
+  const dayLbl = d => { const [y, m, dd] = d.split('-'); return dd + '/' + m; };
+  const fb = s.feedback.map(f => `<div class="fb"><div class="row" style="justify-content:space-between"><span class="stars" aria-label="${f.rating} dari 5">${'★'.repeat(f.rating)}<span style="color:var(--line-2)">${'★'.repeat(5 - f.rating)}</span></span><span class="muted" style="font-size:12px">${new Date(f.ts).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })} · ${f.platform}${f.lv ? ' · Level ' + f.lv : ''}</span></div>${f.text ? `<div>${esc(f.text)}</div>` : '<div class="muted">(tanpa komentar)</div>'}</div>`).join('') || '<p class="muted">Belum ada masukan.</p>';
+  const board = s.today.board.map(b => `<tr><td class="n" style="text-align:left">${b.rank}</td><td>${esc(b.name)}</td><td class="n">${b.score}</td></tr>`).join('');
+  $('#out').innerHTML = `
+  <div class="tiles">
+    <div class="panel tile"><div class="v">${s.uniqueSessions}</div><div class="l">Pemain unik (${s.days} hari)</div></div>
+    <div class="panel tile"><div class="v">${plays}</div><div class="l">Level dimainkan</div></div>
+    <div class="panel tile"><div class="v">${pct(passes, ends) ?? '–'}${ends ? '%' : ''}</div><div class="l">Lulus (skor ≥ 75) dari ${ends} level selesai</div></div>
+    <div class="panel tile"><div class="v">${daily}</div><div class="l">Main tantangan harian</div></div>
+  </div>
+  <section class="panel"><h2>Pemain unik per hari</h2>
+    <div class="chart" role="img" aria-label="Grafik batang pemain unik per hari">${grid}${s.perDay.map(d => `<div class="col" tabindex="0"><span class="tip">${dayLbl(d.date)}: ${d.sessions} pemain · ${d.plays} level dimainkan</span><i style="height:${d.sessions / top * 100}%"></i></div>`).join('')}</div>
+    <div class="xl">${s.perDay.map(d => `<span>${dayLbl(d.date)}</span>`).join('')}</div>
+  </section>
+  <section class="panel"><h2>Per level</h2><div class="tw"><table>
+    <tr><th>Level</th><th>Dimulai</th><th>Selesai</th><th>Lulus</th><th>Skor rata-rata</th><th>Durasi rata-rata</th><th>Berhenti di tengah</th></tr>
+    ${s.levels.map(l => { const c = pct(l.ends, l.starts), p = pct(l.pass, l.ends); return `<tr><td><b>${l.level}</b> · ${JOB[l.level]}</td><td class="n">${l.starts}</td>
+      <td class="n">${l.ends}${c != null ? ` (${c}%)<span class="meter" aria-hidden="true"><i style="width:${c}%"></i></span>` : ''}</td>
+      <td class="n">${p != null ? p + '%' : '–'}</td><td class="n">${l.avgScore ?? '–'}</td><td class="n">${fmtDur(l.avgDur)}</td>
+      <td class="n">${l.quits}${l.topQuitPhase ? ` · paling sering di <b>${esc(l.topQuitPhase)}</b>` : ''}</td></tr>`; }).join('')}
+  </table></div><p class="muted" style="font-size:12px;margin:8px 0 0">Level 5 dihitung per evaluasi bulanan. "Berhenti di tengah" = keluar sebelum evaluasi; fase menunjukkan bagian level tempat pemain berhenti.</p></section>
+  <div class="grid2">
+    <section class="panel"><h2>Masukan terbaru (${s.feedbackCount})</h2>${fb}</section>
+    <section class="panel"><h2>Tantangan hari ini · Level ${s.today.level}</h2><p class="muted" style="margin:0 0 8px">${JOB[s.today.level]} · ${s.today.date}</p>
+      ${board ? `<div class="tw"><table style="min-width:0"><tr><th>#</th><th>Nama</th><th style="text-align:right">Skor</th></tr>${board}</table></div>` : '<p class="muted">Belum ada skor hari ini.</p>'}</section>
+  </div>
+  <p class="muted" style="font-size:12px">Diperbarui ${new Date(s.generatedAt).toLocaleString('id-ID')}. <button class="btn" onclick="load()">Muat ulang</button></p>`;
+  $('#out').hidden = false;
+}
+</script>
+</body>
+</html>

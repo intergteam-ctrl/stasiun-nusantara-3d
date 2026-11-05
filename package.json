@@ -1,0 +1,10 @@
+{
+  "name": "stasiun-nusantara-3d",
+  "private": true,
+  "type": "module",
+  "description": "Game simulasi karier kereta api 3D + API Netlify (telemetri, masukan, tantangan harian)",
+  "dependencies": {
+    "@netlify/blobs": "^11.1.7",
+    "@netlify/functions": "^6.1.0"
+  }
+}

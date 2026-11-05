@@ -1,0 +1,26 @@
+# Stasiun Nusantara 3D — situs statis (site/) + API Netlify Functions (netlify/functions)
+[build]
+  publish = "site"
+  functions = "netlify/functions"
+  command = "echo 'Situs statis sudah dibangun di folder site/'"
+
+[[headers]]
+  for = "/download/*"
+  [headers.values]
+    Content-Type = "application/vnd.android.package-archive"
+    Content-Disposition = "attachment"
+
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/three.min.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/admin.html"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
